@@ -8,6 +8,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface TryResult {
-  int tryId();
+  int tryId() default 1;
   String value();
 }

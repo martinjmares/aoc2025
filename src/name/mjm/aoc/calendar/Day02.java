@@ -1,55 +1,35 @@
 package name.mjm.aoc.calendar;
 
+import name.mjm.aoc.LongUtils;
 import name.mjm.aoc.ParentDay;
 import name.mjm.aoc.TryResult;
 import name.mjm.aoc.model.Csv;
-import name.mjm.aoc.model.IntPair;
 
 import java.util.*;
 
 public class Day02 extends ParentDay {
 
-  private final Map<IntPair, Long> fullSegmentsCache = new HashMap<>();
-
-  long pow(long x, long y) {
-    long result = 1;
-    for (int i = 0; i < y; i++) {
-      result *= x;
-    }
-    return result;
-  }
-
   long createIncrement(int partSize, int repeats) {
     long increment = 0L;
     for (int i = 0; i < repeats; i++) {
-      increment += pow(pow(10L, partSize), i);
+      increment += LongUtils.pow(LongUtils.pow(10L, partSize), i);
     }
     return increment;
   }
 
   void computeRepeatations(int partSize, int repeats, long minPart, long minValue, long maxValue, Set<Long> collector) {
-//    boolean wholeSegment = minPart < 0 && maxValue < 0;
-//    if (wholeSegment) {
-//      // Try cache first
-//      Long l = fullSegmentsCache.get(new IntPair(partSize, repeats));
-//      if (l != null) {
-//        logger.debug("computeRepeatations(partSize: "  + partSize + ", repeats: " + repeats + ", 'unbounded') - from cache");
-//        return l;
-//      }
-//    }
-
     // Compute
     if (minPart < 0) {
-      minPart = pow(10L, partSize - 1);
+      minPart = LongUtils.pow(10L, partSize - 1);
     }
     if (maxValue < 0) {
-      maxValue = pow(10L, (partSize * repeats)) - 1L;
+      maxValue = LongUtils.pow(10L, ((long) partSize * repeats)) - 1L;
     }
 
     // Initial value
     long initialValue = 0;
     for (long i = 0; i < repeats; i++) {
-      initialValue += minPart * pow(pow(10L, partSize), i);
+      initialValue += minPart * LongUtils.pow(LongUtils.pow(10L, partSize), i);
     }
 
     // Increment
@@ -57,21 +37,14 @@ public class Day02 extends ParentDay {
 
     // Check variants
     logger.debug("computeRepeatations(partSize: "  + partSize + ", repeats: " + repeats + ", minPart: " + minPart + ", maxValue: " + maxValue + "), increment: " + increment + ", initValue: " + initialValue );
-    long counter = 0;
     long value = initialValue;
     while (value <= maxValue) {
       if (minValue <= value) {
         logger.debug("computeRepeatations(): find: " + value);
-        counter++;
         collector.add(value);
       }
       value += increment;
     }
-    //logger.debug("computeRepeatations(): find count: " + counter);
-
-//    if (wholeSegment) {
-//      fullSegmentsCache.put(new IntPair(partSize, repeats), result);
-//    }
   }
 
   private long sumSaftely(Collection<Long> segments) {
@@ -82,7 +55,7 @@ public class Day02 extends ParentDay {
     return sum;
   }
 
-  @TryResult(tryId = 1, value = "1227775554")
+  @TryResult(value = "1227775554")
   public long a(Csv csv) {
     List<Interval> intervals = loadIntervals(csv);
     Set<Long> results = new HashSet<>();
@@ -105,7 +78,7 @@ public class Day02 extends ParentDay {
     return sumSaftely(results);
   }
 
-  @TryResult(tryId = 1, value = "4174379265")
+  @TryResult(value = "4174379265")
   public long b(Csv csv) {
     List<Interval> intervals = loadIntervals(csv);
     Set<Long> results = new HashSet<>();

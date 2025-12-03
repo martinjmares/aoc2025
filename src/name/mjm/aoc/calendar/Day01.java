@@ -4,12 +4,11 @@ import name.mjm.aoc.ParentDay;
 import name.mjm.aoc.TryResult;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.util.List;
 
 public class Day01 extends ParentDay {
 
-  @TryResult(tryId = 1, value = "3")
+  @TryResult(value = "3")
   public Integer a(Moves moves) {
     int position = 50;
     int result = 0;
@@ -37,7 +36,7 @@ public class Day01 extends ParentDay {
     return result;
   }
 
-  @TryResult(tryId = 1, value = "6")
+  @TryResult(value = "6")
   public Integer b(Moves moves) {
     int position = 50;
     int result = 0;
@@ -74,7 +73,7 @@ public class Day01 extends ParentDay {
   public static class Moves {
     final List<Move> moves;
 
-    public Moves(BufferedReader reader) throws IOException {
+    public Moves(BufferedReader reader) {
       this.moves = reader.lines()
           .filter(line -> !line.isEmpty())
           .map(String::trim)
@@ -91,20 +90,13 @@ public class Day01 extends ParentDay {
     }
   }
 
-  static class Move {
-    final Direction direction;
-    final int size;
-
-    public Move(Direction direction, int size) {
-      this.direction = direction;
-      this.size = size;
-    }
+  record Move(Direction direction, int size) {
 
     @Override
-    public String toString() {
-      return direction.toString() + " " + size;
+      public String toString() {
+        return direction.toString() + " " + size;
+      }
     }
-  }
 
   enum Direction {
     LEFT,
