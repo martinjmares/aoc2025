@@ -57,9 +57,9 @@ public class Day02 extends ParentDay {
 
   @TryResult(value = "1227775554")
   public long a(Csv csv) {
-    List<Interval> intervals = loadIntervals(csv);
+    List<MyInterval> intervals = loadIntervals(csv);
     Set<Long> results = new HashSet<>();
-    for (Interval interval : intervals) {
+    for (MyInterval interval : intervals) {
       logger.info("Interval: " + interval);
       int lenStart = interval.sStart.length();
       int lenEnd = interval.sEnd.length();
@@ -80,9 +80,9 @@ public class Day02 extends ParentDay {
 
   @TryResult(value = "4174379265")
   public long b(Csv csv) {
-    List<Interval> intervals = loadIntervals(csv);
+    List<MyInterval> intervals = loadIntervals(csv);
     Set<Long> results = new HashSet<>();
-    for (Interval interval : intervals) {
+    for (MyInterval interval : intervals) {
       logger.info("Interval: " + interval);
       int lenStart = interval.sStart.length();
       int lenEnd = interval.sEnd.length();
@@ -102,7 +102,7 @@ public class Day02 extends ParentDay {
     return sumSaftely(results);
   }
 
-  private List<Interval> loadIntervals(Csv csv) {
+  private List<MyInterval> loadIntervals(Csv csv) {
     return csv.values()
         .stream()
         .map(String::trim)
@@ -111,18 +111,18 @@ public class Day02 extends ParentDay {
           if (index == -1) {
             throw new RuntimeException("Interval without dash! It is an invalid input.");
           }
-          return new Interval(s.substring(0, index), s.substring(index + 1));
+          return new MyInterval(s.substring(0, index), s.substring(index + 1));
         })
         .toList();
   }
 
-  static class Interval {
+  static class MyInterval {
     final long start;
     final long end;
     final String sStart;
     final String sEnd;
 
-    Interval(String sStart, String sEnd) {
+    MyInterval(String sStart, String sEnd) {
       this.sStart = sStart;
       this.sEnd = sEnd;
       this.start = Long.parseLong(sStart);

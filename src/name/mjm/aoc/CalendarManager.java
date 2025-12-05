@@ -418,11 +418,12 @@ public class CalendarManager implements Runnable{
                       } else {
                         logger.print("RESULT ");
                       }
-                      logger.print("[" + stat.result.printValue + "]: ");
+                      logger.print("[" + stat.result.printValue + " in " + TimeUtils.formatDuration(stat.duration) + " sec]: ");
                       logger.print(stat.value);
                       if (stat.expectedValue != null) {
                         logger.print(" (expected: '" + stat.expectedValue + "')");
                       }
+                      // Duration
                       logger.println();
                     }
                   }

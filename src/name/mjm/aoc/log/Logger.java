@@ -1,9 +1,8 @@
 package name.mjm.aoc.log;
 
 import name.mjm.aoc.Provider;
+import name.mjm.aoc.TimeUtils;
 
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
 import java.util.StringTokenizer;
 
 public class Logger {
@@ -69,47 +68,34 @@ public class Logger {
     return result.toString();
   }
 
-  private LoggingConfig config() {
+  static LoggingConfig config() {
     return LOGGING_CONFIG.orElse(LoggingConfig.DEFAULT);
   }
 
-  private StringBuffer prefix(LoggingConfig config, LogLevel level) {
-    StringBuffer sb = new StringBuffer();
-    // Timestamp
-    Duration sinceStart = Duration.of(System.currentTimeMillis() - START_TIME, ChronoUnit.MILLIS);
-    long minutes = sinceStart.toMinutes();
-    if (minutes > 0) {
-      sb.append(minutes).append(':');
-      sinceStart = sinceStart.minusMinutes(minutes);
-    }
-    long sec = sinceStart.toSeconds();
-    if (sec < 10) {
-      sb.append('0');
-    }
-    sb.append(sec).append('.');
-    sinceStart = sinceStart.minusSeconds(sec);
-    long millis = sinceStart.toMillis();
-    if (millis < 10) {
-      sb.append("00");
-    }  else if (millis < 100) {
-      sb.append('0');
-    }
-    sb.append(millis).append(' ');
+  private StringBuilder prefix(LogLevel level) {
+    StringBuilder sb = genericPrefix(name, level);
+    sb.append(": ");
+    return sb;
+  }
+
+  static StringBuilder genericPrefix(String name, LogLevel level) {
+    StringBuilder sb = new StringBuilder();
+    // Duration
+    String duration = TimeUtils.formatDuration(START_TIME, System.currentTimeMillis());
+    sb.append(duration).append(' ');
 
     // Level
     sb.append('[').append(level.getShortcut()).append("] ");
 
     // Logger name
     sb.append(name);
-
-    sb.append(": ");
     return sb;
   }
 
   private void log(Object message, Throwable throwable, LogLevel level) {
     LoggingConfig config = config();
     if (config.canLog(level)) {
-      StringBuffer m = prefix(config, level).append(message);
+      StringBuilder m = prefix(level).append(message);
       config.getOut().println(m);
       if (throwable != null) {
         throwable.printStackTrace(config.getOut());
@@ -120,7 +106,7 @@ public class Logger {
   private void log(Provider<String> messageProvider, LogLevel level) {
     LoggingConfig config = config();
     if (config.canLog(level)) {
-      StringBuffer m = prefix(config, level).append(messageProvider.provide());
+      StringBuilder m = prefix(level).append(messageProvider.provide());
       config.getOut().println(m);
     }
   }
