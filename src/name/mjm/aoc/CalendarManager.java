@@ -26,7 +26,7 @@ public class CalendarManager implements Runnable{
     this.resourcesProvider = new DayResourcesProvider(resourceDirectory);
   }
 
-  private Stats executeDayPhase(MinVersion minVersion, Parameter[] parameters, int tryId, String expectedResult) {
+  private Stats executeDayPhase(MinVersion minVersion, Parameter[] parameters, Type[] paramTypes, int tryId, String expectedResult) {
     Method method = minVersion.method;
     PhaseDef phaseDef = minVersion.phaseDef;
     int dayId = minVersion.target.getDay();
@@ -54,8 +54,8 @@ public class CalendarManager implements Runnable{
 
       // Load parameters
       List paramValues = new ArrayList(parameters.length);
-      for (Parameter parameter : parameters) {
-        Named named = parameter.getAnnotation(Named.class);
+      for (int i = 0; i < parameters.length; i++) {
+        Named named = parameters[i].getAnnotation(Named.class);
         String name = named != null ? (named.value() == null ? "" : named.value()) : "";
         String resourceName = resourcesProvider.findResource(dayId, phaseDef, tryId, name);
         if (resourceName == null) {
@@ -65,9 +65,9 @@ public class CalendarManager implements Runnable{
             throw new RuntimeException("Cannot data (resource) for named method parameter '" + method.getName() + "', name: " + name);
           }
         }
-        Object value = ResourceUtils.loadResource(resourceName, parameter.getType());
+        Object value = ResourceUtils.loadResource(resourceName, parameters[i].getType(), paramTypes[i]);
         if (value == null) {
-          throw new RuntimeException("Cannot construct value for method parameter '" + method.getName() + "', Class: " + parameter.getType().getName());
+          throw new RuntimeException("Cannot construct value for method parameter '" + method.getName() + "', Class: " + parameters[i].getType().getName());
         }
         paramValues.add(value);
       }
@@ -142,6 +142,8 @@ public class CalendarManager implements Runnable{
     Method method = minVersion.method;
     method.setAccessible(true);
     Parameter[] parameters = method.getParameters();
+    Type[] genericParameterTypes = method.getGenericParameterTypes();
+
 
     // Tries
     boolean triesOk = true;
@@ -162,7 +164,7 @@ public class CalendarManager implements Runnable{
       // Execute tries
       List<Integer> tryIds = resourcesProvider.getTryIds(dayId, phaseDef);
       for (Integer tryId : tryIds) {
-        Stats stats = executeDayPhase(minVersion, parameters, tryId, expectedTryResults.get(tryId));
+        Stats stats = executeDayPhase(minVersion, parameters, genericParameterTypes, tryId, expectedTryResults.get(tryId));
         if (stats.result != Result.OK) {
           triesOk = false;
         }
@@ -171,7 +173,7 @@ public class CalendarManager implements Runnable{
     }
 
     if (triesOk && config.execTries != CalendarManagerConfig.ExecTries.ONLY) {
-      Stats stats = executeDayPhase(minVersion, parameters, -1, null);
+      Stats stats = executeDayPhase(minVersion, parameters, genericParameterTypes, -1, null);
       minVersion.stats.add(stats);
     }
   }

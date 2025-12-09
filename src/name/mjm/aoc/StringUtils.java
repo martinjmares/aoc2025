@@ -16,4 +16,11 @@ public class StringUtils {
   public static String orElse(String string, String defaultValue) {
     return isNullOrBlank(string) ? defaultValue : string;
   }
+
+  public static char charAt(String string, int index, char defaultValue) {
+    if (string == null || index >= string.length() || index < 0) {
+      return defaultValue;
+    }
+    return string.charAt(index);
+  }
 }

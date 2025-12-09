@@ -9,10 +9,10 @@ import java.util.List;
 public class Day01 extends ParentDay {
 
   @TryResult(value = "3")
-  public Integer a(Moves moves) {
+  public Integer a(List<Move> moves) {
     int position = 50;
     int result = 0;
-    for (Move move : moves.moves) {
+    for (Move move : moves) {
       int size = move.size % 100;
       if (move.direction == Direction.RIGHT) {
         // RIGHT
@@ -90,7 +90,17 @@ public class Day01 extends ParentDay {
     }
   }
 
-  record Move(Direction direction, int size) {
+  public record Move(Direction direction, int size) {
+
+    public Move(String line) {
+      char ch = line.charAt(0);
+      Direction direction = switch (ch) {
+        case 'L' -> Direction.LEFT;
+        case 'R' -> Direction.RIGHT;
+        default -> throw new RuntimeException("Character " + ch + " is not a valid move.");
+      };
+      this(direction, Integer.parseInt(line.substring(1)));
+    }
 
     @Override
       public String toString() {

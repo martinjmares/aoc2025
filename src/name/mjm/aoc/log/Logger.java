@@ -100,6 +100,7 @@ public class Logger {
       if (throwable != null) {
         throwable.printStackTrace(config.getOut());
       }
+      config.getOut().flush();
     }
   }
 
@@ -149,19 +150,23 @@ public class Logger {
 
   public void println(Object message) {
     config().getOut().println(message);
+    config().getOut().flush();
   }
 
   public void println() {
     config().getOut().println();
+    config().getOut().flush();
   }
 
   public void print(Object message) {
     config().getOut().print(message);
+    config().getOut().flush();
   }
 
   public void printThrowable(Throwable throwable) {
     if (throwable != null) {
       throwable.printStackTrace(config().getOut());
+      config().getOut().flush();
     }
   }
 

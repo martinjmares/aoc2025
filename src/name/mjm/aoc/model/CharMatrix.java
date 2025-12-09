@@ -67,6 +67,10 @@ public class CharMatrix {
     return get(row + transformation.row(), column + transformation.column(), defaultValue);
   }
 
+  public char[] getRow(int row) {
+    return rows.get(row);
+  }
+
   public int rowCount() {
     return rows.size();
   }
@@ -81,5 +85,16 @@ public class CharMatrix {
 
   public void set(int row, int column, char ch) {
     rows.get(row)[column] = ch;
+  }
+
+  public String toString() {
+    StringBuilder sb = new StringBuilder(rowCount() * (columnCount() + 1));
+    for (char[] row : rows) {
+      for (char c : row) {
+        sb.append(c);
+      }
+      sb.append('\n');
+    }
+    return sb.toString();
   }
 }

@@ -26,4 +26,8 @@ public class NumberUtils {
       return defaultValue;
     }
   }
+
+  public static long sqr(long num) {
+    return num * num;
+  }
 }

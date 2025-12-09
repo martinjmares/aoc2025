@@ -9,7 +9,7 @@ public class DayResourcesProvider {
   public static String DEFAULT_RESOURCES_DIRECTORY = "resources";
   // Day(dayNum)(AB)(name)(tryId)(suffix)
   // Day12a-jmeno_try1.txt
-  static final Pattern PATTERN = Pattern.compile("[dD]ay(\\d+)([aAbB]{0,2})(-[a-zA-Z0-9]+)?(_try\\d+)?(\\.[a-zA-Z0-9]{1,5})?");
+  static final Pattern PATTERN = Pattern.compile("[dD]ay(\\d+)([aAbB]{0,2})(-[a-zA-Z0-9]+)?(_try\\d+)?(\\.[a-zA-Z0-9]{1,50})?");
 
   private final Map<DayAndPhase, ResourcePack> resources = new HashMap<>();
 
@@ -107,6 +107,10 @@ public class DayResourcesProvider {
       super(name, resourceDir, resourceName);
       this.tryId = tryId;
     }
+
+    public String toString() {
+      return "TryResource: try:" + tryId + ", name:" + name + " (" + resourceName + ")";
+    }
   }
 
   private static class NamedResource {
@@ -118,6 +122,10 @@ public class DayResourcesProvider {
       this.resourceDir = resourceDir;
       this.resourceName = resourceName;
       this.name = name;
+    }
+
+    public String toString() {
+      return "NamedResource: " + name + " (" + resourceName + ")";
     }
   }
 
@@ -140,6 +148,11 @@ public class DayResourcesProvider {
     @Override
     public int hashCode() {
       return Objects.hash(day, phaseDef);
+    }
+
+    @Override
+    public String toString() {
+      return day + "-" + phaseDef;
     }
   }
 }

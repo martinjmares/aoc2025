@@ -49,6 +49,7 @@ public class LimitedLogger {
           sb.append(message);
         }
         config.getOut().println(sb);
+        config.getOut().flush();
       }
     }
   }
