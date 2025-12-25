@@ -26,8 +26,8 @@ public class Counter implements Comparable<Counter> {
     value++;
   }
 
-  public void inc(long value) {
-    this.value += value;
+  public void inc(long val) {
+    this.value += val;
   }
 
   public void dec() {
