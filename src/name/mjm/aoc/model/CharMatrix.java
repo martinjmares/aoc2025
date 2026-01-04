@@ -19,11 +19,11 @@ public class CharMatrix {
   public static final Coordinate[] AROUND = new Coordinate[]{UP, DOWN, LEFT, RIGHT, UPRIGHT, UPLEFT, DOWNRIGHT, DOWNLEFT};
 
 
-  private final List<char[]> rows;
+  private final ArrayList<char[]> rows;
   private final boolean uniformLength;
 
   public CharMatrix(BufferedReader reader) throws IOException {
-    List<char[]> lRows = new ArrayList<>();
+    ArrayList<char[]> lRows = new ArrayList<>();
     String line;
     int lastLength = -1;
     boolean uniformLength = true;
