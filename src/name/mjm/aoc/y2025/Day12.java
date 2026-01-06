@@ -1,9 +1,9 @@
-package name.mjm.aoc.calendar;
+package name.mjm.aoc.y2025;
 
 import name.mjm.aoc.ParentDay;
-import name.mjm.aoc.model.forday12.Present;
-import name.mjm.aoc.model.forday12.TreeSpace;
-import name.mjm.aoc.model.forday12.TreesAndPresents;
+import name.mjm.aoc.y2025.forday12.Present;
+import name.mjm.aoc.y2025.forday12.TreeSpace;
+import name.mjm.aoc.y2025.forday12.TreesAndPresents;
 
 public class Day12 extends ParentDay {
 

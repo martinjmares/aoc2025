@@ -14,7 +14,8 @@ public class CalendarManager implements Runnable{
   private final Logger logger = new Logger(this);
   private final CalendarManagerConfig config;
   private final Set<Class> dayClasses;
-  private final DayResourcesProvider resourcesProvider;
+  private final Map<Integer, DayResourcesProvider> yearResourcesProvider;
+  private final DayResourcesProvider baseResourcesProvider;
 
   public CalendarManager(CalendarManagerConfig config, String classesPackage, String resourceDirectory) throws Exception {
     this.config = config;
@@ -23,13 +24,15 @@ public class CalendarManager implements Runnable{
         .filter(c -> !Modifier.isAbstract(c.getModifiers()))
         .filter(ParentDay.class::isAssignableFrom)
         .collect(Collectors.toSet());
-    this.resourcesProvider = new DayResourcesProvider(resourceDirectory);
+    this.yearResourcesProvider = DayResourcesProvider.createForYears(resourceDirectory);
+    this.baseResourcesProvider = new DayResourcesProvider(resourceDirectory);
   }
 
-  private Stats executeDayPhase(MinVersion minVersion, Parameter[] parameters, Type[] paramTypes, int tryId, String expectedResult) {
+  private Stats executeDayPhase(MinVersion minVersion, Parameter[] parameters, Type[] paramTypes, int tryId, DayResourcesProvider resourcesProvider, String expectedResult) {
     Method method = minVersion.method;
     PhaseDef phaseDef = minVersion.phaseDef;
     int dayId = minVersion.target.getDay();
+    int yearId = minVersion.target.getYear();
     long startTime = System.currentTimeMillis();
 
     try {
@@ -37,7 +40,7 @@ public class CalendarManager implements Runnable{
       logger.println();
       logger.println(Logger.F_SINGLE_SEPARATOR);
       StringBuilder caption = new StringBuilder();
-      caption.append("Day ").append(dayId);
+      caption.append("Day ").append(yearId).append("..").append(dayId);
       caption.append(" - ").append(phaseDef);
       if (minVersion.target.getVersion() > 0 || minVersion.minVersion > 0) {
         caption.append(" (version ")
@@ -85,10 +88,10 @@ public class CalendarManager implements Runnable{
       AtomicReference<Throwable> error = new AtomicReference<>();
       Thread thread = Thread.ofVirtual()
                            .name("Day " + dayId + " " + phaseDef)
-                           .start(() -> {
+                           .start(() ->
                              ScopedValue.where(Logger.LOGGING_CONFIG, loggingConfig).run(() -> {
                                try {
-                                 Object r = method.invoke(target, paramValues.toArray(new Object[paramValues.size()]));
+                                 Object r = method.invoke(target, paramValues.toArray(new Object[0]));
                                  if (r != null) {
                                    result.set(String.valueOf(r));
                                  }
@@ -101,8 +104,8 @@ public class CalendarManager implements Runnable{
                                } catch (Throwable throwable) {
                                  error.set(throwable);
                                }
-                             });
-                           });
+                             })
+                           );
       thread.join();
 
       logger.println();
@@ -143,6 +146,10 @@ public class CalendarManager implements Runnable{
     method.setAccessible(true);
     Parameter[] parameters = method.getParameters();
     Type[] genericParameterTypes = method.getGenericParameterTypes();
+    DayResourcesProvider resourcesProvider = yearResourcesProvider.get(minVersion.target.getYear());
+    if  (resourcesProvider == null) {
+      resourcesProvider = baseResourcesProvider;
+    }
 
 
     // Tries
@@ -164,7 +171,7 @@ public class CalendarManager implements Runnable{
       // Execute tries
       List<Integer> tryIds = resourcesProvider.getTryIds(dayId, phaseDef);
       for (Integer tryId : tryIds) {
-        Stats stats = executeDayPhase(minVersion, parameters, genericParameterTypes, tryId, expectedTryResults.get(tryId));
+        Stats stats = executeDayPhase(minVersion, parameters, genericParameterTypes, tryId, resourcesProvider, expectedTryResults.get(tryId));
         if (stats.result != Result.OK) {
           triesOk = false;
         }
@@ -173,7 +180,7 @@ public class CalendarManager implements Runnable{
     }
 
     if (triesOk && config.execTries != CalendarManagerConfig.ExecTries.ONLY) {
-      Stats stats = executeDayPhase(minVersion, parameters, genericParameterTypes, -1, null);
+      Stats stats = executeDayPhase(minVersion, parameters, genericParameterTypes, -1, resourcesProvider, null);
       minVersion.stats.add(stats);
     }
   }
@@ -302,9 +309,9 @@ public class CalendarManager implements Runnable{
     }
   }
 
-  public List<Day> runDays() {
+  List<Day> runDays() {
     // Construct relevant Days from
-    Map<Integer, Day> allDays = new HashMap<>();
+    Map<Integer, Map<Integer, Day>> yearDayMap = new HashMap<>();
     dayClasses.stream()
         .map(c -> {
               try {
@@ -316,48 +323,50 @@ public class CalendarManager implements Runnable{
         .filter(Objects::nonNull)
         .map(o -> (ParentDay) o)
         .forEach(day -> {
-          allDays.computeIfAbsent(day.getDay(), Day::new)
-              .versions
-              .put(day.getVersion(), new Version(day));
+          Map<Integer, Day> year = yearDayMap.computeIfAbsent(day.getYear(), _ -> new HashMap<>());
+          Day d = year.computeIfAbsent(day.getDay(), _ -> new Day(day.getYear(), day.getDay()));
+          d.versions.put(day.getVersion(), new Version(day));
         });
-    logger.debug(() -> "All days: " + allDays.keySet()
-                                             .stream()
-                                             .map(i -> String.valueOf(i))
-                                             .collect(Collectors.joining(", ", "[", "]")));
 
-    // Select what days to actually execute
-    List<Day> daysToExecute;
-    if (allDays.isEmpty()) {
-      daysToExecute = Collections.emptyList();
+    if (yearDayMap.isEmpty()) {
       logger.error("There are no days.");
-    } else {
-      daysToExecute = switch (config.execDays) {
-        case ALL -> {
-          var res = new ArrayList<>(allDays.values());
-          res.sort(Day::compareTo);
-          yield res;
-        }
-        case SELECTED -> {
-          Day day = allDays.get(config.selectedDay);
-          if (day == null) {
-            logger.error("Count not find selected day: " + config.selectedDay);
-            yield List.of();
-          } else {
-            yield List.of(day);
-          }
-        }
-        case LAST -> List.of(allDays.values()
-                                    .stream()
-                                    .sorted()
-                                    .toList()
-                                    .getLast());
-      };
+      return List.of();
     }
 
+    // Select year(s) to execute and put days to a Liat
+    ArrayList<Day> daysToExecute = switch (config.execYears) {
+      case ALL -> yearDayMap.values()
+                         .stream()
+                         .flatMap(map -> map.values().stream())
+                         .collect(Collectors.toCollection(ArrayList::new));
+      case SELECTED -> {
+        var years = yearDayMap.get(config.selectedYear);
+        if (years == null) {
+          yield new ArrayList<>();
+        } else {
+          yield new ArrayList<>(years.values());
+        }
+      }
+      case LAST -> {
+        Integer lastYear = yearDayMap.keySet()
+                                    .stream()
+                                    .max(Comparator.naturalOrder())
+                                    .orElseThrow(() -> new IllegalStateException("There is no year. Impossible"));
+        yield new ArrayList<>(yearDayMap.get(lastYear).values());
+      }
+    };
+
+    // Select what days to actually execute
+    daysToExecute.sort(Day::compareTo);
+    daysToExecute = switch (config.execDays) {
+      case ALL -> daysToExecute;
+      case SELECTED -> daysToExecute.stream()
+                                    .filter(d -> d.day == config.selectedDay)
+                                    .collect(Collectors.toCollection(ArrayList::new));
+      case LAST -> new ArrayList<>(List.of(daysToExecute.getLast()));
+    };
+
     // Execute
-    logger.debug(() -> "Days to execute: " + daysToExecute.stream()
-        .map(d -> String.valueOf(d.day))
-        .collect(Collectors.joining(", ", "[", "]")));
     for (Day day : daysToExecute) {
       runVersions(day);
     }
@@ -368,7 +377,7 @@ public class CalendarManager implements Runnable{
   public void run() {
     logger.debug("run()");
     logger.println(Logger.F_DOUBLE_SEPARATOR);
-    logger.println(Logger.f_CAPTION("CILININK, CILILINK - RUN IT"));
+    logger.println(Logger.f_CAPTION("CILILINK, CILILINK - RUN IT"));
     logger.println(Logger.f_CAPTION(config.toString(), Logger.F_INDENT + Logger.F_INDENT));
     logger.println(Logger.F_DOUBLE_SEPARATOR);
     logger.println();
@@ -388,7 +397,7 @@ public class CalendarManager implements Runnable{
         versions.sort(Version::compareTo);
         for (Version version : versions) {
           if (version.hasStats()) {
-            logger.print("Day " + day.day);
+            logger.print("Day " + day.year + ".." + day.day);
             if (version.version > 0) {
               logger.print("  v" + version.version);
             }
@@ -441,20 +450,26 @@ public class CalendarManager implements Runnable{
   // ---- Internal classes
 
   static class Day implements Comparable<Day> {
+    final int year;
     final int day;
     final Map<Integer, Version>  versions = new HashMap<>();
 
-    public Day(int day) {
+    public Day(int year, int day) {
+      this.year = year;
       this.day = day;
     }
 
     @Override
     public int compareTo(Day o) {
-      return Integer.compare(day, o.day);
+      int yearComp = Integer.compare(year, o.year);
+      if (yearComp == 0) {
+        return Integer.compare(day, o.day);
+      }
+      return yearComp;
     }
 
     public String toString() {
-      return "Day{" + day + ", versions.size: " +  versions.size() + "}";
+      return "Day{" + year + "." + day + ", versions.size: " +  versions.size() + "}";
     }
 
     boolean hasStats() {
@@ -548,27 +563,7 @@ public class CalendarManager implements Runnable{
     }
   }
 
-  public static class Stats {
-    final int tryId;
-    final Result result;
-    final String value;
-    final String expectedValue;
-    final long duration;
-    final Throwable throwable;
-
-    public Stats(int tryId, Result result, String value, String expectedValue, long duration, Throwable throwable) {
-      this.tryId = tryId;
-      this.result = result;
-      this.value = value;
-      this.expectedValue = expectedValue;
-      this.duration = duration;
-      this.throwable = throwable;
-    }
-
-    public Stats(Result result, String value, long duration, Throwable throwable) {
-      this(-1, result, value, null, duration, throwable);
-    }
-
+  public record Stats(int tryId, Result result, String value, String expectedValue, long duration, Throwable throwable) {
   }
 
   public enum Result {

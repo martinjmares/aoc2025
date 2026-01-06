@@ -1,4 +1,4 @@
-package name.mjm.aoc.calendar;
+package name.mjm.aoc.y2025;
 
 import name.mjm.aoc.ParentDay;
 import name.mjm.aoc.TryResult;
@@ -7,9 +7,7 @@ import name.mjm.aoc.model.Coordinate;
 import name.mjm.aoc.model.CoordinatesQueue;
 import name.mjm.aoc.model.CoordinatesQueue.LCoordinate;
 
-import java.lang.classfile.Opcode;
 import java.util.Arrays;
-import java.util.Spliterator;
 
 public class Day07 extends ParentDay {
 

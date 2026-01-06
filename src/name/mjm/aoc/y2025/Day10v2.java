@@ -1,4 +1,4 @@
-package name.mjm.aoc.calendar;
+package name.mjm.aoc.y2025;
 
 import name.mjm.aoc.ParentDay;
 import name.mjm.aoc.TryResult;
@@ -7,7 +7,7 @@ import name.mjm.aoc.algebra.EquationSet;
 import name.mjm.aoc.algebra.LinearEquation;
 import name.mjm.aoc.algebra.ParametrisedEquationSetResult;
 import name.mjm.aoc.algebra.RationalNumber;
-import name.mjm.aoc.calendar.Day10.JMachine;
+import name.mjm.aoc.y2025.Day10.JMachine;
 
 import java.util.Arrays;
 import java.util.List;

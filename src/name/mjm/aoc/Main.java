@@ -21,10 +21,11 @@ public class Main {
 
     if ("run".equals(cmd) || unknown) {
       System.out.println("  run: executes advent of code");
-      System.out.println("     day related: all | last | <day>; (default: all)");
+      System.out.println("     day related:     all | last | <day>; (default: all)");
+      System.out.println("     year related:    yearAll | yearLast | year<Year>; (default: yearLast)");
       System.out.println("     version related: vAll | vLast | v<version.minVersion>; (default: vLast)");
-      System.out.println("     phase related: A | B | AB | ABLast; (default: ABLast)");
-      System.out.println("     logs relates: logDebug | logInfo | logError; (default: logInfo)");
+      System.out.println("     phase related:   A | B | AB | ABLast; (default: ABLast)");
+      System.out.println("     logs relates:    logDebug | logInfo | logError; (default: logInfo)");
     }
 
     if ("test".equals(cmd) || unknown) {
@@ -62,6 +63,8 @@ public class Main {
         case "logerror" -> builder.logLevel(LogLevel.ERROR);
         case "all" -> builder.execDays(CalendarManagerConfig.ExecDays.ALL);
         case "last" -> builder.execDays(CalendarManagerConfig.ExecDays.LAST);
+        case "yearall" -> builder.execYears(CalendarManagerConfig.ExecYears.ALL);
+        case "yearlast" -> builder.execYears(CalendarManagerConfig.ExecYears.LAST);
         case "vall" -> builder.execVersions(CalendarManagerConfig.ExecVersions.ALL);
         case "vlast" -> builder.execVersions(CalendarManagerConfig.ExecVersions.LAST);
         case "a" -> builder.execPhases(CalendarManagerConfig.ExecPhases.A);
@@ -74,6 +77,8 @@ public class Main {
         default -> {
           if (param.startsWith("v")) {
             builder.selectedVersion(param.substring(1));
+          } else if (param.startsWith("year")) {
+            builder.selectedYear(Integer.parseInt(param.substring(4)));
           } else {
             builder.selectedDay(Integer.parseInt(param));
           }

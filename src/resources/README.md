@@ -1,10 +1,10 @@
-# Jak nazvat soubor
+# How to name file
 
 ```
-Day(CisloDne)(AB)-(name)_try(CisloPokusu)(.pripona)
+Day(DayNumber)(AB)-(paramName)_try(tryNumber)(.extension)
 ```
 
-Priklady
+Examples:
 - Day12_try1
 - Day4a
-- Day35b-jmeno_try3.csv
+- Day35b-foo_try3.csv

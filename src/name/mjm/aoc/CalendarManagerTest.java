@@ -27,7 +27,7 @@ public class CalendarManagerTest {
     if (mv == null) {
       return null;
     }
-    return mv.stats.stream().filter(s -> s.tryId == tryId).findAny().orElse(null);
+    return mv.stats.stream().filter(s -> s.tryId() == tryId).findAny().orElse(null);
   }
 
   private CalendarManager createTarget(CalendarManagerConfig config) throws Exception {
@@ -47,28 +47,28 @@ public class CalendarManagerTest {
 
     CalendarManager.Stats s = findStat(days, 70, 0, 0, CalendarManager.PhaseDef.A, -1);
     Assert.that(s).isNotNull();
-    Assert.that(s.result).is(CalendarManager.Result.OK);
-    Assert.that(s.value).is("70_v0_A");
+    Assert.that(s.result()).is(CalendarManager.Result.OK);
+    Assert.that(s.value()).is("70_v0_A");
 
     s = findStat(days, 70, 2, 0, CalendarManager.PhaseDef.B, -1);
     Assert.that(s).isNotNull();
-    Assert.that(s.result).is(CalendarManager.Result.OK);
-    Assert.that(s.value).is("70_v2_B");
+    Assert.that(s.result()).is(CalendarManager.Result.OK);
+    Assert.that(s.value()).is("70_v2_B");
 
     s = findStat(days, 70, 2, 2, CalendarManager.PhaseDef.B, -1);
     Assert.that(s).isNotNull();
-    Assert.that(s.result).is(CalendarManager.Result.OK);
-    Assert.that(s.value).is("70_v2.2_B");
+    Assert.that(s.result()).is(CalendarManager.Result.OK);
+    Assert.that(s.value()).is("70_v2.2_B");
 
     s = findStat(days, 71, 0, 0, CalendarManager.PhaseDef.A, 1);
     Assert.that(s).isNotNull();
-    Assert.that(s.result).is(CalendarManager.Result.OK);
-    Assert.that(s.value).is("71try1");
+    Assert.that(s.result()).is(CalendarManager.Result.OK);
+    Assert.that(s.value()).is("71try1");
 
     s = findStat(days, 71, 0, 0, CalendarManager.PhaseDef.A, -1);
     Assert.that(s).isNotNull();
-    Assert.that(s.result).is(CalendarManager.Result.OK);
-    Assert.that(s.value).is("ahoj71");
+    Assert.that(s.result()).is(CalendarManager.Result.OK);
+    Assert.that(s.value()).is("ahoj71");
   }
 
   void testTryFail() throws Exception {
@@ -84,17 +84,17 @@ public class CalendarManagerTest {
 
     CalendarManager.Stats s = findStat(days, 72, 0, 0, CalendarManager.PhaseDef.A, -1);
     Assert.that(s).isNotNull();
-    Assert.that(s.result).is(CalendarManager.Result.OK);
+    Assert.that(s.result()).is(CalendarManager.Result.OK);
 
     s = findStat(days, 72, 0, 0, CalendarManager.PhaseDef.B, -1);
     Assert.that(s).isNull();
 
     s = findStat(days, 72, 0, 0, CalendarManager.PhaseDef.B, 1);
     Assert.that(s).isNotNull();
-    Assert.that(s.result).is(CalendarManager.Result.OK);
+    Assert.that(s.result()).is(CalendarManager.Result.OK);
 
     s = findStat(days, 72, 0, 0, CalendarManager.PhaseDef.B, 3);
     Assert.that(s).isNotNull();
-    Assert.that(s.result).is(CalendarManager.Result.UNEXPECTED_RESULT);
+    Assert.that(s.result()).is(CalendarManager.Result.UNEXPECTED_RESULT);
   }
 }

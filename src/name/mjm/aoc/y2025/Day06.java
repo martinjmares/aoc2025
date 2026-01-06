@@ -1,4 +1,4 @@
-package name.mjm.aoc.calendar;
+package name.mjm.aoc.y2025;
 
 import name.mjm.aoc.ParentDay;
 import name.mjm.aoc.StringUtils;

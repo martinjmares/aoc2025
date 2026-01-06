@@ -5,6 +5,8 @@ import name.mjm.aoc.log.LogLevel;
 public class CalendarManagerConfig {
 
   final LogLevel logLevel;
+  final ExecYears execYears;
+  final int selectedYear;
   final ExecDays execDays;
   final int selectedDay;
   final ExecVersions execVersions;
@@ -15,6 +17,9 @@ public class CalendarManagerConfig {
 
   private CalendarManagerConfig(Builder builder) {
     this.logLevel = builder.logLevel == null ? LogLevel.INFO : builder.logLevel;
+    // Year
+    this.execYears = builder.execYears == null ? ExecYears.LAST : builder.execYears;
+    this.selectedYear = builder.selectedYear;
     // Day
     this.execDays = builder.execDays == null ? ExecDays.ALL : builder.execDays;
     this.selectedDay = builder.selectedDay;
@@ -65,6 +70,8 @@ public class CalendarManagerConfig {
 
   public static class Builder {
     private LogLevel logLevel;
+    private ExecYears execYears;
+    private int selectedYear = -1;
     private ExecDays execDays;
     private int selectedDay = -1;
     private ExecVersions execVersions;
@@ -77,6 +84,20 @@ public class CalendarManagerConfig {
 
     public Builder logLevel(LogLevel logLevel) {
       this.logLevel = logLevel;
+      return this;
+    }
+
+    public Builder execYears(ExecYears execYears) {
+      this.execYears = execYears;
+      if (execYears != ExecYears.SELECTED) {
+        this.selectedYear = -1;
+      }
+      return this;
+    }
+
+    public Builder selectedYear(int selectedYear) {
+      this.selectedYear = selectedYear;
+      this.execYears = ExecYears.SELECTED;
       return this;
     }
 
@@ -128,6 +149,12 @@ public class CalendarManagerConfig {
     public CalendarManagerConfig build() {
       return new CalendarManagerConfig(this);
     }
+  }
+
+  public enum ExecYears {
+    ALL,
+    LAST,
+    SELECTED
   }
 
   public enum ExecDays {

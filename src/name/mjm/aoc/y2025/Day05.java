@@ -1,9 +1,8 @@
-package name.mjm.aoc.calendar;
+package name.mjm.aoc.y2025;
 
 import name.mjm.aoc.ParentDay;
 import name.mjm.aoc.TryResult;
 import name.mjm.aoc.model.Interval;
-import name.mjm.aoc.model.Lines;
 
 import java.io.BufferedReader;
 import java.io.IOException;

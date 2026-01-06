@@ -1,4 +1,4 @@
-package name.mjm.testdays;
+package name.mjm.testdays.y2025;
 
 import name.mjm.aoc.ParentDay;
 

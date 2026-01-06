@@ -10,6 +10,7 @@ public class DayResourcesProvider {
   // Day(dayNum)(AB)(name)(tryId)(suffix)
   // Day12a-jmeno_try1.txt
   static final Pattern PATTERN = Pattern.compile("[dD]ay(\\d+)([aAbB]{0,2})(-[a-zA-Z0-9]+)?(_try\\d+)?(\\.[a-zA-Z0-9]{1,50})?");
+  static final Pattern YEAR_PATTERN = Pattern.compile("[Yy](ear)?(\\d{2,4})");
 
   private final Map<DayAndPhase, ResourcePack> resources = new HashMap<>();
 
@@ -40,6 +41,21 @@ public class DayResourcesProvider {
         }
       }
     }
+  }
+
+  public static Map<Integer, DayResourcesProvider> createForYears(String resourceBaseDirectory) {
+    final String resourceBaseDirName = resourceBaseDirectory == null ? DEFAULT_RESOURCES_DIRECTORY : resourceBaseDirectory;
+    List<String> ress = ResourceUtils.listResources(resourceBaseDirName, YEAR_PATTERN);
+    Map<Integer, DayResourcesProvider> result = new HashMap<>();
+    for (String rDir : ress) {
+      Matcher matcher = YEAR_PATTERN.matcher(rDir);
+      if (matcher.matches()) {
+        String sYear = matcher.group(2);
+        int year = sYear.length() < 4 ? (2000 + Integer.parseInt(sYear)) : Integer.parseInt(sYear);
+        result.put(year, new DayResourcesProvider(resourceBaseDirName + "/" + rDir));
+      }
+    }
+    return result;
   }
 
   public List<Integer> getTryIds(int day, CalendarManager.PhaseDef phase) {

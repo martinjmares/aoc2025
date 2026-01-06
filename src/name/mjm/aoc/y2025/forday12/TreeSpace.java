@@ -1,4 +1,4 @@
-package name.mjm.aoc.model.forday12;
+package name.mjm.aoc.y2025.forday12;
 
 import com.sun.source.tree.Tree;
 
