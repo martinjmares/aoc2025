@@ -45,7 +45,25 @@ public class CalendarManagerTest {
     CalendarManager target = createTarget(config);
     List<CalendarManager.Day> days = target.runDays();
 
-    CalendarManager.Stats s = findStat(days, 70, 0, 0, CalendarManager.PhaseDef.A, -1);
+    CalendarManager.Stats s = findStat(days, 50, 0, 0, CalendarManager.PhaseDef.A, 1);
+    Assert.that(s).isNotNull();
+    Assert.that(s.result()).is(CalendarManager.Result.OK);
+
+    s = findStat(days, 50, 0, 0, CalendarManager.PhaseDef.B, 1);
+    Assert.that(s).isNotNull();
+    Assert.that(s.result()).is(CalendarManager.Result.OK);
+
+    s = findStat(days, 50, 0, 0, CalendarManager.PhaseDef.A, -1);
+    Assert.that(s).isNotNull();
+    Assert.that(s.result()).is(CalendarManager.Result.OK);
+    Assert.that(s.value()).is("abcd");
+
+    s = findStat(days, 50, 0, 0, CalendarManager.PhaseDef.B, -1);
+    Assert.that(s).isNotNull();
+    Assert.that(s.result()).is(CalendarManager.Result.OK);
+    Assert.that(s.value()).is("abcd");
+
+    s = findStat(days, 70, 0, 0, CalendarManager.PhaseDef.A, -1);
     Assert.that(s).isNotNull();
     Assert.that(s.result()).is(CalendarManager.Result.OK);
     Assert.that(s.value()).is("70_v0_A");

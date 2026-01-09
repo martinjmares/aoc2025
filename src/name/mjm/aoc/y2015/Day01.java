@@ -1,9 +1,13 @@
 package name.mjm.aoc.y2015;
 
-import name.mjm.aoc.ParentDay;
-import name.mjm.aoc.TryResult;
-import name.mjm.aoc.TryResults;
+import name.mjm.aoc.*;
 
+@Datas(
+    {
+        @Data(tryId = 1, value = "(()(()("),
+        @Data(tryId = 2, value = ")())())")
+    }
+)
 public class Day01 extends ParentDay {
 
   @TryResults(

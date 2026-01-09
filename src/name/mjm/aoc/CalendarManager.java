@@ -28,7 +28,7 @@ public class CalendarManager implements Runnable{
     this.baseResourcesProvider = new DayResourcesProvider(resourceDirectory);
   }
 
-  private Stats executeDayPhase(MinVersion minVersion, Parameter[] parameters, Type[] paramTypes, int tryId, DayResourcesProvider resourcesProvider, String expectedResult) {
+  private Stats executeDayPhase(MinVersion minVersion, Parameter[] parameters, Type[] paramTypes, int tryId, ParametersProvider parametersProvider, String expectedResult) {
     Method method = minVersion.method;
     PhaseDef phaseDef = minVersion.phaseDef;
     int dayId = minVersion.target.getDay();
@@ -60,15 +60,7 @@ public class CalendarManager implements Runnable{
       for (int i = 0; i < parameters.length; i++) {
         Named named = parameters[i].getAnnotation(Named.class);
         String name = named != null ? (named.value() == null ? "" : named.value()) : "";
-        String resourceName = resourcesProvider.findResource(dayId, phaseDef, tryId, name);
-        if (resourceName == null) {
-          if (name.isEmpty()) {
-            throw new RuntimeException("Cannot data (resource) for method parameter '" + method.getName() + "'.");
-          } else {
-            throw new RuntimeException("Cannot data (resource) for named method parameter '" + method.getName() + "', name: " + name);
-          }
-        }
-        Object value = ResourceUtils.loadResource(resourceName, parameters[i].getType(), paramTypes[i]);
+        Object value = parametersProvider.createValueForParameter(tryId, name, parameters[i].getType(), paramTypes[i]);
         if (value == null) {
           throw new RuntimeException("Cannot construct value for method parameter '" + method.getName() + "', Class: " + parameters[i].getType().getName());
         }
@@ -150,6 +142,7 @@ public class CalendarManager implements Runnable{
     if  (resourcesProvider == null) {
       resourcesProvider = baseResourcesProvider;
     }
+    ParametersProvider dataProvider = new ParametersProvider(dayId, phaseDef, resourcesProvider, minVersion.target.getClass(), method);
 
 
     // Tries
@@ -169,9 +162,9 @@ public class CalendarManager implements Runnable{
       }
 
       // Execute tries
-      List<Integer> tryIds = resourcesProvider.getTryIds(dayId, phaseDef);
+      List<Integer> tryIds = dataProvider.getTryIds();
       for (Integer tryId : tryIds) {
-        Stats stats = executeDayPhase(minVersion, parameters, genericParameterTypes, tryId, resourcesProvider, expectedTryResults.get(tryId));
+        Stats stats = executeDayPhase(minVersion, parameters, genericParameterTypes, tryId, dataProvider, expectedTryResults.get(tryId));
         if (stats.result != Result.OK) {
           triesOk = false;
         }
@@ -180,7 +173,7 @@ public class CalendarManager implements Runnable{
     }
 
     if (triesOk && config.execTries != CalendarManagerConfig.ExecTries.ONLY) {
-      Stats stats = executeDayPhase(minVersion, parameters, genericParameterTypes, -1, resourcesProvider, null);
+      Stats stats = executeDayPhase(minVersion, parameters, genericParameterTypes, -1, dataProvider, null);
       minVersion.stats.add(stats);
     }
   }
