@@ -23,4 +23,17 @@ public class StringUtils {
     }
     return string.charAt(index);
   }
+
+  public static boolean isNumber(String str) {
+    char[] charArray = str.toCharArray();
+    if (str.isBlank()) {
+      return false;
+    }
+    for (char c : charArray) {
+      if (!Character.isDigit(c) && !Character.isWhitespace(c) && c != '-') {
+        return false;
+      }
+    }
+    return true;
+  }
 }
