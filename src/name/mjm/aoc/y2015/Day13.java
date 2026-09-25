@@ -2,7 +2,6 @@ package name.mjm.aoc.y2015;
 
 import name.mjm.aoc.ParentDay;
 import name.mjm.aoc.TryResult;
-import name.mjm.aoc.model.Pair;
 
 import java.util.ArrayList;
 import java.util.Arrays;
