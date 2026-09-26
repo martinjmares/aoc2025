@@ -1,99 +1,165 @@
 package name.mjm.aoc.y2015;
 
 import name.mjm.aoc.ParentDay;
-import name.mjm.aoc.TryResult;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.List;
+import java.util.StringTokenizer;
 
 public class Day16 extends ParentDay {
 
-  @TryResult("62842880")
-  public int a(ArrayList<Ingredient> ingredients) {
-    Leader leader = brutForce(ingredients, false);
-    logger.info("The leading configuration is " + Arrays.toString(leader.configuration) + "; value: " + leader.value);
-    return leader.value;
-  }
-
-  @TryResult("57600000")
-  public int b(ArrayList<Ingredient> ingredients) {
-    Leader leader = brutForce(ingredients, true);
-    logger.info("The leading configuration is " + Arrays.toString(leader.configuration) + "; value: " + leader.value);
-    return leader.value;
-  }
-
-  Leader brutForce(ArrayList<Ingredient> ingredientsList, boolean caloriesTest) {
-    Ingredient[] ingredients = ingredientsList.toArray(new Ingredient[0]);
-    int[] configuration = new int[ingredients.length];
-    Leader leader = new Leader();
-    brutForceIterative(ingredients, 0, configuration, 0, 100, caloriesTest, leader);
-    return leader;
-  }
-
-  void brutForceIterative(Ingredient[] ingredients, int pointer, int[] configuration, int currentSize, int sizeLimit, boolean caloriesTest, Leader leader) {
-    if (pointer == (configuration.length - 1)) {
-      // I am last one
-      configuration[pointer] = sizeLimit - currentSize;
-      int value = computeNutrientsOfTheProduct(ingredients, configuration, caloriesTest);
-      if (value > leader.value) {
-        leader.value = value;
-        leader.configuration = Arrays.copyOf(configuration, configuration.length);
+  private static final String MFCSAM_RES = """
+      children: 3
+      cats: 7
+      samoyeds: 2
+      pomeranians: 3
+      akitas: 0
+      vizslas: 0
+      goldfish: 5
+      trees: 3
+      cars: 2
+      perfumes: 1
+      """;
+  private PropertyValueMap createMfcsamMap() {
+    String input = MFCSAM_RES;
+    StringTokenizer rows = new StringTokenizer(input, "\n");
+    PropertyValueMap result = new PropertyValueMap();
+    while (rows.hasMoreTokens()) {
+      String row = rows.nextToken().trim();
+      if (row.isEmpty()) {
+        continue;
       }
-      return;
+      int index = row.indexOf(':');
+      result.set(Properties.valueOf(row.substring(0, index).trim()),
+                 Integer.parseInt(row.substring(index + 1).trim()));
     }
-
-    // Iterations
-    for (int i = 0; i <= (sizeLimit - currentSize); i++) {
-      configuration[pointer] = i;
-      brutForceIterative(ingredients, pointer + 1, configuration, currentSize + i, sizeLimit, caloriesTest, leader);
-    }
+    return result;
   }
 
-  int computeNutrientsOfTheProduct(Ingredient[] ingredients, int[] configuration, boolean caloriesTest) {
-    int capacity = 0;
-    int durability = 0;
-    int flavor = 0;
-    int texture = 0;
-    int calories = 0;
-    for (int i = 0; i < ingredients.length; i++) {
-      capacity += configuration[i] * ingredients[i].capacity;
-      durability += configuration[i] * ingredients[i].durability;
-      flavor += configuration[i] * ingredients[i].flavor;
-      texture += configuration[i] * ingredients[i].texture;
-      calories += configuration[i] * ingredients[i].calories;
+  public String a(ArrayList<Sue> sues) {
+    PropertyValueMap mfcsamMap = createMfcsamMap();
+    List<Sue> valiedSues = sues.stream()
+                         .filter(sue -> isValidSueForA(sue, mfcsamMap))
+                         .peek(sue -> logger.debug("Valied sue: " + sue.id))
+                         .toList();
+    if (valiedSues.isEmpty()) {
+      throw new IllegalArgumentException("No valid sues found");
     }
-    if (caloriesTest && calories != 500) {
-      return -1;
+    if (valiedSues.size() > 1) {
+      throw new IllegalArgumentException("Too many valid sues found");
     }
-    if (capacity <= 0 || durability <= 0 || flavor <= 0 || texture <= 0) {
-      return 0;
-    }
-    return capacity * durability * flavor * texture;
+    return valiedSues.get(0).id;
   }
 
-  static class Leader {
-    int[] configuration;
-    int value = -1;
-  }
-
-  public record Ingredient(String name, int capacity, int durability, int flavor, int texture, int calories) {
-
-    private static final Pattern PATTERN =
-        Pattern.compile("([a-zA-Z]+): capacity (-?\\d+), durability (-?\\d+), flavor (-?\\d+), texture (-?\\d+), calories (-?\\d+)");
-
-    public Ingredient(String line) {
-      Matcher matcher = PATTERN.matcher(line);
-      if (!matcher.matches()) {
-        throw new IllegalArgumentException("Line is invalid: " + line);
+  private boolean isValidSueForA(Sue sue, PropertyValueMap mfcsamMap) {
+    int[] suePopsValues = sue.props.values;
+    for (int i = 0; i < suePopsValues.length; i++) {
+      if (suePopsValues[i] > -1 && suePopsValues[i] != mfcsamMap.values[i]) {
+        return false;
       }
-      this(matcher.group(1),
-           Integer.parseInt(matcher.group(2)),
-           Integer.parseInt(matcher.group(3)),
-           Integer.parseInt(matcher.group(4)),
-           Integer.parseInt(matcher.group(5)),
-           Integer.parseInt(matcher.group(6)));
+    }
+    return true;
+  }
+
+  public String b(ArrayList<Sue> sues) {
+    PropertyValueMap mfcsamMap = createMfcsamMap();
+    List<Sue> valiedSues = sues.stream()
+                               .filter(sue -> isValidSueForB(sue, mfcsamMap))
+                               .peek(sue -> logger.debug("Valied sue: " + sue.id))
+                               .toList();
+    if (valiedSues.isEmpty()) {
+      throw new IllegalArgumentException("No valid sues found");
+    }
+    if (valiedSues.size() > 1) {
+      throw new IllegalArgumentException("Too many valid sues found");
+    }
+    return valiedSues.get(0).id;
+  }
+
+  private boolean isValidSueForB(Sue sue, PropertyValueMap mfcsamMap) {
+    int[] suePopsValues = sue.props.values;
+    for (int i = 0; i < suePopsValues.length; i++) {
+      if (suePopsValues[i] <= -1) {
+        continue;
+      }
+      if (!Properties.values()[i].test(suePopsValues[i],  mfcsamMap.values[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  public enum Properties {
+    children(TwoIntsPredicate.EQ),
+    cats(TwoIntsPredicate.GT),
+    samoyeds(TwoIntsPredicate.EQ),
+    pomeranians(TwoIntsPredicate.FT),
+    akitas(TwoIntsPredicate.EQ),
+    vizslas(TwoIntsPredicate.EQ),
+    goldfish(TwoIntsPredicate.FT),
+    trees(TwoIntsPredicate.GT),
+    cars(TwoIntsPredicate.EQ),
+    perfumes(TwoIntsPredicate.EQ);
+
+    final TwoIntsPredicate bPredicate;
+
+    Properties(TwoIntsPredicate bPredicate) {
+      this.bPredicate = bPredicate;
+    }
+
+    boolean test(int tested, int expected) {
+      return bPredicate.test(tested, expected);
+    }
+  }
+
+  @FunctionalInterface
+  public static interface TwoIntsPredicate {
+    public static final TwoIntsPredicate EQ = ((tested, expected) -> tested == expected);
+    public static final TwoIntsPredicate GT = ((tested, expected) -> tested > expected);
+    public static final TwoIntsPredicate FT = ((tested, expected) -> tested < expected);
+    boolean test(int tested, int expected);
+  }
+
+  /**
+   * Just for fun, I am making own, fast specialised map between enum and ints.
+   */
+  public static class PropertyValueMap {
+    private final int[] values = new int[Properties.values().length];
+
+    public PropertyValueMap() {
+      Arrays.fill(values, -1);
+    }
+
+    public int get(Properties prop) {
+      return values[prop.ordinal()];
+    }
+
+    public void set(Properties prop, int value) {
+      values[prop.ordinal()] = value;
+    }
+  }
+
+  public record Sue(String id, PropertyValueMap props) {
+    public Sue(String line) {
+      int index = line.indexOf(':');
+      String name = line.substring(0, index);
+      if (!name.startsWith("Sue ")) {
+        throw new IllegalArgumentException("Unexpected line: " + line);
+      }
+      name = name.substring("Sue ".length()).trim();
+
+      // Parse properties
+      PropertyValueMap props = new PropertyValueMap();
+      StringTokenizer tokenizer = new StringTokenizer(line.substring(index + 1), ",");
+      while (tokenizer.hasMoreTokens()) {
+        String token = tokenizer.nextToken();
+        int inIndex = token.indexOf(':');
+        String key = token.substring(0, inIndex).trim();
+        String value = token.substring(inIndex + 1).trim();
+        props.set(Properties.valueOf(key), Integer.parseInt(value));
+      }
+      this(name, props);
     }
   }
 }
