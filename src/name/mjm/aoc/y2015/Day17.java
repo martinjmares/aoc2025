@@ -18,13 +18,13 @@ public class Day17 extends ParentDay {
 
 
   @TryResult(value = "4")
-  public int a(ArrayList<Size> sizes, @Named("size") String ssize) {
-    return withoutRecursion(sizes, Integer.parseInt(ssize.trim()), false);
+  public int a(ArrayList<Size> sizes, @Named("size") int size) {
+    return withoutRecursion(sizes, size, false);
   }
 
   @TryResult(value = "3")
-  public int b(ArrayList<Size> sizes, @Named("size") String ssize) {
-    return withoutRecursion(sizes, Integer.parseInt(ssize.trim()), true);
+  public int b(ArrayList<Size> sizes, @Named("size") int size) {
+    return withoutRecursion(sizes, size, true);
   }
 
   /**

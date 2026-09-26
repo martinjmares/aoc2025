@@ -4,9 +4,11 @@ import javax.swing.*;
 import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.*;
+import java.util.function.Function;
 
 class ParametersProvider {
 
@@ -83,6 +85,27 @@ class ParametersProvider {
       return data == null ? (T) ResourceUtils.loadResourceAsString(resourceName) : (T) data.value();
     }
 
+    // Primitive types
+    if (clazz.isPrimitive()) {
+      String strVal = data == null ? ResourceUtils.loadResourceAsString(resourceName) : data.value();
+      if (Integer.TYPE.isAssignableFrom(clazz)) {
+        return (T) Integer.valueOf(strVal);
+      } else if (Long.TYPE.isAssignableFrom(clazz)) {
+        return (T) Long.valueOf(strVal);
+      } else if (Double.TYPE.isAssignableFrom(clazz)) {
+        return (T) Double.valueOf(strVal);
+      } else if (Float.TYPE.isAssignableFrom(clazz)) {
+        return (T) Float.valueOf(strVal);
+      } else if (Boolean.TYPE.isAssignableFrom(clazz)) {
+        return (T) Boolean.valueOf(strVal);
+      } else if (Character.TYPE.isAssignableFrom(clazz)) {
+        if (strVal.length() != 1) {
+          throw new IllegalArgumentException("Cannot cast " + strVal + " to char because it has not exactly one character!");
+        }
+        return (T) Character.valueOf(strVal.charAt(0));
+      }
+    }
+
     // Lists
     if (clazz.isAssignableFrom(ArrayList.class)) {
       if (genericType instanceof ParameterizedType pt) {
@@ -100,21 +123,19 @@ class ParametersProvider {
           return (T) new ArrayList<>(lines);
         }
 
-        Constructor<T> elementConstructor;
+        Function<String, T> buildingFunction;
         try {
-          elementConstructor = actualTypeArgument.getConstructor(String.class);
-          elementConstructor.setAccessible(true);
+          buildingFunction = getBuildingFunction(actualTypeArgument);
         } catch (NoSuchMethodException e) {
-          throw new RuntimeException("List parameter must be constructable from string!", e);
+          throw new RuntimeException(e);
         }
 
         try {
           ArrayList<T> result = new ArrayList<>(lines.size());
-          String line;
           for (String l : lines) {
             l = l.trim();
             if (!l.isEmpty()) {
-              result.add(elementConstructor.newInstance(l));
+              result.add(buildingFunction.apply(l));
             }
           }
           return (T) result;
@@ -156,12 +177,11 @@ class ParametersProvider {
 
     // From String
     try {
-      Constructor<T> constructor = clazz.getConstructor(String.class);
-      constructor.setAccessible(true);
+      Function<String, T> buildingFunction = getBuildingFunction(clazz);
       String str = data == null
           ? ResourceUtils.loadResourceAsString(resourceName)
           : data.value();
-      return constructor.newInstance(str);
+      return buildingFunction.apply(str);
     } catch (NoSuchMethodException e) {
     } catch (Exception e) {
       throw new RuntimeException(e);
@@ -182,6 +202,55 @@ class ParametersProvider {
     }
     tryIds.addAll(resourcesProvider.getTryIds(dayId, phase));
     return new ArrayList<>(tryIds);
+  }
+
+  private <T> Function<String, T> getBuildingFunction(Class<T> clazz) throws NoSuchMethodException {
+    // Public Constructor
+    try {
+      Constructor<T> constructor = clazz.getConstructor(String.class);
+      return (s) -> {
+        try {
+          return (T) constructor.newInstance(s);
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+      };
+    } catch (NoSuchMethodException e) {
+      // Never mind, try the next possibility
+    }
+
+    // Declared non-public constructor
+    try {
+      Constructor<T> constructor = clazz.getDeclaredConstructor(String.class);
+      constructor.setAccessible(true);
+      return (s) -> {
+        try {
+          return (T) constructor.newInstance(s);
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+      };
+    } catch (NoSuchMethodException e) {
+      // Never mind, try the next possibility
+    }
+
+    // valueOf static method
+    try {
+      Method m = clazz.getMethod("valueOf", String.class);
+      if (Modifier.isStatic(m.getModifiers()) && clazz.isAssignableFrom(m.getReturnType())) {
+        return (s) -> {
+          try {
+            return (T) m.invoke(null, s);
+          } catch (Exception e) {
+            throw new RuntimeException(e);
+          }
+        };
+      }
+    } catch (NoSuchMethodException e) {
+      // Never mind, try the next possibility
+    }
+
+    throw new NoSuchMethodException("Cannot find suitable building method for class: " + clazz);
   }
 
 

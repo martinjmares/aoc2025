@@ -11,14 +11,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Datas({
-    @Data(tryId = 1, name = "ssec", value = "1000"),
-    @Data(name = "ssec", value = "2503")
+    @Data(tryId = 1, name = "sec", value = "1000"),
+    @Data(name = "sec", value = "2503")
 })
 public class Day14 extends ParentDay {
 
   @TryResult(value = "1120")
-  public int a(ArrayList<DeerSpeed> config, @Named("ssec") String ssec) {
-    int sec = Integer.parseInt(ssec);
+  public int a(ArrayList<DeerSpeed> config, @Named("sec") int sec) {
     logger.debug("Numeber of deers: " + config.size() + ", race for " + sec + " sec.");
     int maxDistance = -1;
     DeerSpeed maxDistanceDeer = null;
@@ -44,8 +43,7 @@ public class Day14 extends ParentDay {
     return ((sequences * deer.secActive) + remainingSec) * deer.speed;
   }
 
-  public int b(ArrayList<DeerTracker> trackers, @Named("ssec") String ssec) {
-    int sec = Integer.parseInt(ssec);
+  public int b(ArrayList<DeerTracker> trackers, @Named("sec") int sec) {
     ArrayList<DeerTracker> winnerTrackers = new ArrayList<>(trackers.size());
     for (int i = 0; i < sec; i++) {
       int maxDistance = -1;
