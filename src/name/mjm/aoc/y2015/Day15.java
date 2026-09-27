@@ -1,5 +1,6 @@
 package name.mjm.aoc.y2015;
 
+import name.mjm.aoc.FromRegexpGroups;
 import name.mjm.aoc.ParentDay;
 import name.mjm.aoc.TryResult;
 
@@ -78,22 +79,6 @@ public class Day15 extends ParentDay {
     int value = -1;
   }
 
-  public record Ingredient(String name, int capacity, int durability, int flavor, int texture, int calories) {
-
-    private static final Pattern PATTERN =
-        Pattern.compile("([a-zA-Z]+): capacity (-?\\d+), durability (-?\\d+), flavor (-?\\d+), texture (-?\\d+), calories (-?\\d+)");
-
-    public Ingredient(String line) {
-      Matcher matcher = PATTERN.matcher(line);
-      if (!matcher.matches()) {
-        throw new IllegalArgumentException("Line is invalid: " + line);
-      }
-      this(matcher.group(1),
-           Integer.parseInt(matcher.group(2)),
-           Integer.parseInt(matcher.group(3)),
-           Integer.parseInt(matcher.group(4)),
-           Integer.parseInt(matcher.group(5)),
-           Integer.parseInt(matcher.group(6)));
-    }
-  }
+  @FromRegexpGroups("([a-zA-Z]+): capacity (-?\\d+), durability (-?\\d+), flavor (-?\\d+), texture (-?\\d+), calories (-?\\d+)")
+  public record Ingredient(String name, int capacity, int durability, int flavor, int texture, int calories) {}
 }

@@ -2,6 +2,7 @@ package name.mjm.aoc.y2015;
 
 import name.mjm.aoc.Data;
 import name.mjm.aoc.Datas;
+import name.mjm.aoc.FromRegexpGroups;
 import name.mjm.aoc.Named;
 import name.mjm.aoc.ParentDay;
 import name.mjm.aoc.TryResult;
@@ -82,8 +83,9 @@ public class Day14 extends ParentDay {
     private int secsInState;
     private int distance = 0;
 
-    public DeerTracker(String line) {
-      this.deerSpeed = new DeerSpeed(line);
+    @FromRegexpGroups("(.+)")
+    public DeerTracker(DeerSpeed deerSpeed) {
+      this.deerSpeed = deerSpeed;
       this.state = State.RUNNING;
       this.secsInState = deerSpeed.secActive;
       this.points = 0;
@@ -113,16 +115,6 @@ public class Day14 extends ParentDay {
     }
   }
 
-  public record DeerSpeed(String name, int secActive, int speed, int secPause) {
-    private static final Pattern REGEXP
-        = Pattern.compile("([A-Za-z]+) can fly (\\d+) km/s for (\\d+) seconds, but then must rest for (\\d+) seconds\\.");
-
-    public DeerSpeed(String line) {
-      Matcher matcher = REGEXP.matcher(line);
-      if (!matcher.matches()) {
-        throw new IllegalArgumentException("Invalid line format: " + line);
-      }
-      this(matcher.group(1), Integer.parseInt(matcher.group(3)), Integer.parseInt(matcher.group(2)), Integer.parseInt(matcher.group(4)));
-    }
-  }
+  @FromRegexpGroups("([A-Za-z]+) can fly (\\d+) km/s for (\\d+) seconds, but then must rest for (\\d+) seconds\\.")
+  public record DeerSpeed(String name, int speed, int secActive, int secPause) {}
 }
